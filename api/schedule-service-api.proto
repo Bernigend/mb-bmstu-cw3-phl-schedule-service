@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+package schedule_service_api;
+option go_package = ".;schedule_service_api";
