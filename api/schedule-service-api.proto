@@ -1,4 +1,106 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package schedule_service_api;
 option go_package = ".;schedule_service_api";
+
+service ScheduleService
+{
+  // возвращает расписание указанной группы
+  rpc GetSchedule(GetSchedule_Request) returns (GetSchedule_Response);
+  // добавляет указанные занятия в систему
+  rpc AddLessons(AddLessons_Request) returns (AddLessons_Response);
+}
+
+/******************************************
+ * GetSchedule
+ ******************************************/
+
+message GetSchedule_Request
+{
+  string group_uuid = 1;
+  string group_name = 2;
+}
+
+message GetSchedule_Response
+{
+  repeated GetSchedule_LessonItem lessons_list = 1;
+  GetSchedule_GroupItem group = 2;
+}
+
+message GetSchedule_GroupItem
+{
+  string uuid = 1;
+  string name = 2;
+  google.protobuf.Timestamp semester_start = 3;
+  google.protobuf.Timestamp semester_end = 4;
+  bool is_first_week_numerator = 5;
+}
+
+message GetSchedule_LessonItem
+{
+  string uuid = 1;
+  string name = 2;
+  LessonType type = 3;
+  string where = 4;
+  string whom = 5;
+  string start_time = 6;
+  string end_time = 7;
+  Weekday weekday = 8;
+  bool is_numerator = 9;
+}
+
+/******************************************
+ * AddLessons
+ ******************************************/
+
+message AddLessons_Request
+{
+  repeated AddLessons_LessonItem lessons_list = 1;
+}
+
+message AddLessons_Response
+{
+ repeated AddLessons_ResultItem results_list = 1;
+}
+
+message AddLessons_LessonItem
+{
+  string group_uuid = 1;
+  string name = 2;
+  LessonType type = 3;
+  string where = 4;
+  string whom = 5;
+  string start_time = 6;
+  string end_time = 7;
+  Weekday weekday = 8;
+  bool is_numerator = 9;
+}
+
+message AddLessons_ResultItem
+{
+  bool result = 1;
+}
+
+/******************************************
+ * Enumerations
+ ******************************************/
+
+enum LessonType
+{
+  LECTURE = 0;
+  SEMINAR = 1;
+  LABORATORY_WORK = 2;
+}
+
+enum Weekday
+{
+  MONDAY = 0;
+  TUESDAY = 1;
+  WEDNESDAY = 2;
+  THURSDAY = 3;
+  FRIDAY = 4;
+  SATURDAY = 5;
+  SUNDAY = 6;
+}

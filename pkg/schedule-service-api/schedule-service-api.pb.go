@@ -7,9 +7,15 @@
 package schedule_service_api
 
 import (
+	context "context"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -19,24 +25,839 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type LessonType int32
+
+const (
+	LessonType_LECTURE         LessonType = 0
+	LessonType_SEMINAR         LessonType = 1
+	LessonType_LABORATORY_WORK LessonType = 2
+)
+
+// Enum value maps for LessonType.
+var (
+	LessonType_name = map[int32]string{
+		0: "LECTURE",
+		1: "SEMINAR",
+		2: "LABORATORY_WORK",
+	}
+	LessonType_value = map[string]int32{
+		"LECTURE":         0,
+		"SEMINAR":         1,
+		"LABORATORY_WORK": 2,
+	}
+)
+
+func (x LessonType) Enum() *LessonType {
+	p := new(LessonType)
+	*p = x
+	return p
+}
+
+func (x LessonType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LessonType) Descriptor() protoreflect.EnumDescriptor {
+	return file_schedule_service_api_proto_enumTypes[0].Descriptor()
+}
+
+func (LessonType) Type() protoreflect.EnumType {
+	return &file_schedule_service_api_proto_enumTypes[0]
+}
+
+func (x LessonType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LessonType.Descriptor instead.
+func (LessonType) EnumDescriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{0}
+}
+
+type Weekday int32
+
+const (
+	Weekday_MONDAY    Weekday = 0
+	Weekday_TUESDAY   Weekday = 1
+	Weekday_WEDNESDAY Weekday = 2
+	Weekday_THURSDAY  Weekday = 3
+	Weekday_FRIDAY    Weekday = 4
+	Weekday_SATURDAY  Weekday = 5
+	Weekday_SUNDAY    Weekday = 6
+)
+
+// Enum value maps for Weekday.
+var (
+	Weekday_name = map[int32]string{
+		0: "MONDAY",
+		1: "TUESDAY",
+		2: "WEDNESDAY",
+		3: "THURSDAY",
+		4: "FRIDAY",
+		5: "SATURDAY",
+		6: "SUNDAY",
+	}
+	Weekday_value = map[string]int32{
+		"MONDAY":    0,
+		"TUESDAY":   1,
+		"WEDNESDAY": 2,
+		"THURSDAY":  3,
+		"FRIDAY":    4,
+		"SATURDAY":  5,
+		"SUNDAY":    6,
+	}
+)
+
+func (x Weekday) Enum() *Weekday {
+	p := new(Weekday)
+	*p = x
+	return p
+}
+
+func (x Weekday) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Weekday) Descriptor() protoreflect.EnumDescriptor {
+	return file_schedule_service_api_proto_enumTypes[1].Descriptor()
+}
+
+func (Weekday) Type() protoreflect.EnumType {
+	return &file_schedule_service_api_proto_enumTypes[1]
+}
+
+func (x Weekday) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Weekday.Descriptor instead.
+func (Weekday) EnumDescriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{1}
+}
+
+type GetSchedule_Request struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	GroupUuid string `protobuf:"bytes,1,opt,name=group_uuid,json=groupUuid,proto3" json:"group_uuid,omitempty"`
+	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+}
+
+func (x *GetSchedule_Request) Reset() {
+	*x = GetSchedule_Request{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetSchedule_Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSchedule_Request) ProtoMessage() {}
+
+func (x *GetSchedule_Request) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSchedule_Request.ProtoReflect.Descriptor instead.
+func (*GetSchedule_Request) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetSchedule_Request) GetGroupUuid() string {
+	if x != nil {
+		return x.GroupUuid
+	}
+	return ""
+}
+
+func (x *GetSchedule_Request) GetGroupName() string {
+	if x != nil {
+		return x.GroupName
+	}
+	return ""
+}
+
+type GetSchedule_Response struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	LessonsList []*GetSchedule_LessonItem `protobuf:"bytes,1,rep,name=lessons_list,json=lessonsList,proto3" json:"lessons_list,omitempty"`
+	Group       *GetSchedule_GroupItem    `protobuf:"bytes,2,opt,name=group,proto3" json:"group,omitempty"`
+}
+
+func (x *GetSchedule_Response) Reset() {
+	*x = GetSchedule_Response{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetSchedule_Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSchedule_Response) ProtoMessage() {}
+
+func (x *GetSchedule_Response) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSchedule_Response.ProtoReflect.Descriptor instead.
+func (*GetSchedule_Response) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetSchedule_Response) GetLessonsList() []*GetSchedule_LessonItem {
+	if x != nil {
+		return x.LessonsList
+	}
+	return nil
+}
+
+func (x *GetSchedule_Response) GetGroup() *GetSchedule_GroupItem {
+	if x != nil {
+		return x.Group
+	}
+	return nil
+}
+
+type GetSchedule_GroupItem struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Uuid                 string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	Name                 string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SemesterStart        *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=semester_start,json=semesterStart,proto3" json:"semester_start,omitempty"`
+	SemesterEnd          *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=semester_end,json=semesterEnd,proto3" json:"semester_end,omitempty"`
+	IsFirstWeekNumerator bool                   `protobuf:"varint,5,opt,name=is_first_week_numerator,json=isFirstWeekNumerator,proto3" json:"is_first_week_numerator,omitempty"`
+}
+
+func (x *GetSchedule_GroupItem) Reset() {
+	*x = GetSchedule_GroupItem{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetSchedule_GroupItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSchedule_GroupItem) ProtoMessage() {}
+
+func (x *GetSchedule_GroupItem) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSchedule_GroupItem.ProtoReflect.Descriptor instead.
+func (*GetSchedule_GroupItem) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetSchedule_GroupItem) GetUuid() string {
+	if x != nil {
+		return x.Uuid
+	}
+	return ""
+}
+
+func (x *GetSchedule_GroupItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetSchedule_GroupItem) GetSemesterStart() *timestamppb.Timestamp {
+	if x != nil {
+		return x.SemesterStart
+	}
+	return nil
+}
+
+func (x *GetSchedule_GroupItem) GetSemesterEnd() *timestamppb.Timestamp {
+	if x != nil {
+		return x.SemesterEnd
+	}
+	return nil
+}
+
+func (x *GetSchedule_GroupItem) GetIsFirstWeekNumerator() bool {
+	if x != nil {
+		return x.IsFirstWeekNumerator
+	}
+	return false
+}
+
+type GetSchedule_LessonItem struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Uuid        string     `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	Name        string     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Type        LessonType `protobuf:"varint,3,opt,name=type,proto3,enum=schedule_service_api.LessonType" json:"type,omitempty"`
+	Where       string     `protobuf:"bytes,4,opt,name=where,proto3" json:"where,omitempty"`
+	Whom        string     `protobuf:"bytes,5,opt,name=whom,proto3" json:"whom,omitempty"`
+	StartTime   string     `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime     string     `protobuf:"bytes,7,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	Weekday     Weekday    `protobuf:"varint,8,opt,name=weekday,proto3,enum=schedule_service_api.Weekday" json:"weekday,omitempty"`
+	IsNumerator bool       `protobuf:"varint,9,opt,name=is_numerator,json=isNumerator,proto3" json:"is_numerator,omitempty"`
+}
+
+func (x *GetSchedule_LessonItem) Reset() {
+	*x = GetSchedule_LessonItem{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetSchedule_LessonItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSchedule_LessonItem) ProtoMessage() {}
+
+func (x *GetSchedule_LessonItem) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSchedule_LessonItem.ProtoReflect.Descriptor instead.
+func (*GetSchedule_LessonItem) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetSchedule_LessonItem) GetUuid() string {
+	if x != nil {
+		return x.Uuid
+	}
+	return ""
+}
+
+func (x *GetSchedule_LessonItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetSchedule_LessonItem) GetType() LessonType {
+	if x != nil {
+		return x.Type
+	}
+	return LessonType_LECTURE
+}
+
+func (x *GetSchedule_LessonItem) GetWhere() string {
+	if x != nil {
+		return x.Where
+	}
+	return ""
+}
+
+func (x *GetSchedule_LessonItem) GetWhom() string {
+	if x != nil {
+		return x.Whom
+	}
+	return ""
+}
+
+func (x *GetSchedule_LessonItem) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *GetSchedule_LessonItem) GetEndTime() string {
+	if x != nil {
+		return x.EndTime
+	}
+	return ""
+}
+
+func (x *GetSchedule_LessonItem) GetWeekday() Weekday {
+	if x != nil {
+		return x.Weekday
+	}
+	return Weekday_MONDAY
+}
+
+func (x *GetSchedule_LessonItem) GetIsNumerator() bool {
+	if x != nil {
+		return x.IsNumerator
+	}
+	return false
+}
+
+type AddLessons_Request struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	LessonsList []*AddLessons_LessonItem `protobuf:"bytes,1,rep,name=lessons_list,json=lessonsList,proto3" json:"lessons_list,omitempty"`
+}
+
+func (x *AddLessons_Request) Reset() {
+	*x = AddLessons_Request{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddLessons_Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddLessons_Request) ProtoMessage() {}
+
+func (x *AddLessons_Request) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddLessons_Request.ProtoReflect.Descriptor instead.
+func (*AddLessons_Request) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AddLessons_Request) GetLessonsList() []*AddLessons_LessonItem {
+	if x != nil {
+		return x.LessonsList
+	}
+	return nil
+}
+
+type AddLessons_Response struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ResultsList []*AddLessons_ResultItem `protobuf:"bytes,1,rep,name=results_list,json=resultsList,proto3" json:"results_list,omitempty"`
+}
+
+func (x *AddLessons_Response) Reset() {
+	*x = AddLessons_Response{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddLessons_Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddLessons_Response) ProtoMessage() {}
+
+func (x *AddLessons_Response) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddLessons_Response.ProtoReflect.Descriptor instead.
+func (*AddLessons_Response) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *AddLessons_Response) GetResultsList() []*AddLessons_ResultItem {
+	if x != nil {
+		return x.ResultsList
+	}
+	return nil
+}
+
+type AddLessons_LessonItem struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	GroupUuid   string     `protobuf:"bytes,1,opt,name=group_uuid,json=groupUuid,proto3" json:"group_uuid,omitempty"`
+	Name        string     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Type        LessonType `protobuf:"varint,3,opt,name=type,proto3,enum=schedule_service_api.LessonType" json:"type,omitempty"`
+	Where       string     `protobuf:"bytes,4,opt,name=where,proto3" json:"where,omitempty"`
+	Whom        string     `protobuf:"bytes,5,opt,name=whom,proto3" json:"whom,omitempty"`
+	StartTime   string     `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime     string     `protobuf:"bytes,7,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	Weekday     Weekday    `protobuf:"varint,8,opt,name=weekday,proto3,enum=schedule_service_api.Weekday" json:"weekday,omitempty"`
+	IsNumerator bool       `protobuf:"varint,9,opt,name=is_numerator,json=isNumerator,proto3" json:"is_numerator,omitempty"`
+}
+
+func (x *AddLessons_LessonItem) Reset() {
+	*x = AddLessons_LessonItem{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddLessons_LessonItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddLessons_LessonItem) ProtoMessage() {}
+
+func (x *AddLessons_LessonItem) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddLessons_LessonItem.ProtoReflect.Descriptor instead.
+func (*AddLessons_LessonItem) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *AddLessons_LessonItem) GetGroupUuid() string {
+	if x != nil {
+		return x.GroupUuid
+	}
+	return ""
+}
+
+func (x *AddLessons_LessonItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AddLessons_LessonItem) GetType() LessonType {
+	if x != nil {
+		return x.Type
+	}
+	return LessonType_LECTURE
+}
+
+func (x *AddLessons_LessonItem) GetWhere() string {
+	if x != nil {
+		return x.Where
+	}
+	return ""
+}
+
+func (x *AddLessons_LessonItem) GetWhom() string {
+	if x != nil {
+		return x.Whom
+	}
+	return ""
+}
+
+func (x *AddLessons_LessonItem) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *AddLessons_LessonItem) GetEndTime() string {
+	if x != nil {
+		return x.EndTime
+	}
+	return ""
+}
+
+func (x *AddLessons_LessonItem) GetWeekday() Weekday {
+	if x != nil {
+		return x.Weekday
+	}
+	return Weekday_MONDAY
+}
+
+func (x *AddLessons_LessonItem) GetIsNumerator() bool {
+	if x != nil {
+		return x.IsNumerator
+	}
+	return false
+}
+
+type AddLessons_ResultItem struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Result bool `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"`
+}
+
+func (x *AddLessons_ResultItem) Reset() {
+	*x = AddLessons_ResultItem{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_schedule_service_api_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddLessons_ResultItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddLessons_ResultItem) ProtoMessage() {}
+
+func (x *AddLessons_ResultItem) ProtoReflect() protoreflect.Message {
+	mi := &file_schedule_service_api_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddLessons_ResultItem.ProtoReflect.Descriptor instead.
+func (*AddLessons_ResultItem) Descriptor() ([]byte, []int) {
+	return file_schedule_service_api_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *AddLessons_ResultItem) GetResult() bool {
+	if x != nil {
+		return x.Result
+	}
+	return false
+}
+
 var File_schedule_service_api_proto protoreflect.FileDescriptor
 
 var file_schedule_service_api_proto_rawDesc = []byte{
 	0x0a, 0x1a, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x2d, 0x73, 0x65, 0x72, 0x76, 0x69,
 	0x63, 0x65, 0x2d, 0x61, 0x70, 0x69, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x14, 0x73, 0x63,
 	0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x61,
-	0x70, 0x69, 0x42, 0x18, 0x5a, 0x16, 0x2e, 0x3b, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65,
-	0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x70, 0x69, 0x1a, 0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x22, 0x53, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75,
+	0x6c, 0x65, 0x5f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1d, 0x0a, 0x0a, 0x67, 0x72,
+	0x6f, 0x75, 0x70, 0x5f, 0x75, 0x75, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09,
+	0x67, 0x72, 0x6f, 0x75, 0x70, 0x55, 0x75, 0x69, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x67, 0x72, 0x6f,
+	0x75, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x67,
+	0x72, 0x6f, 0x75, 0x70, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0xaa, 0x01, 0x0a, 0x14, 0x47, 0x65, 0x74,
+	0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x4f, 0x0a, 0x0c, 0x6c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x6c, 0x69, 0x73,
+	0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2c, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75,
+	0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x47,
+	0x65, 0x74, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x4c, 0x65, 0x73, 0x73, 0x6f,
+	0x6e, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x0b, 0x6c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x4c, 0x69,
+	0x73, 0x74, 0x12, 0x41, 0x0a, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x2b, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x63, 0x68, 0x65,
+	0x64, 0x75, 0x6c, 0x65, 0x5f, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x05,
+	0x67, 0x72, 0x6f, 0x75, 0x70, 0x22, 0xf8, 0x01, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x53, 0x63, 0x68,
+	0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x49, 0x74, 0x65, 0x6d, 0x12,
+	0x12, 0x0a, 0x04, 0x75, 0x75, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75,
+	0x75, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x41, 0x0a, 0x0e, 0x73, 0x65, 0x6d, 0x65, 0x73,
+	0x74, 0x65, 0x72, 0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x0d, 0x73, 0x65, 0x6d,
+	0x65, 0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x61, 0x72, 0x74, 0x12, 0x3d, 0x0a, 0x0c, 0x73, 0x65,
+	0x6d, 0x65, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x65, 0x6e, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x0b, 0x73, 0x65,
+	0x6d, 0x65, 0x73, 0x74, 0x65, 0x72, 0x45, 0x6e, 0x64, 0x12, 0x35, 0x0a, 0x17, 0x69, 0x73, 0x5f,
+	0x66, 0x69, 0x72, 0x73, 0x74, 0x5f, 0x77, 0x65, 0x65, 0x6b, 0x5f, 0x6e, 0x75, 0x6d, 0x65, 0x72,
+	0x61, 0x74, 0x6f, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08, 0x52, 0x14, 0x69, 0x73, 0x46, 0x69,
+	0x72, 0x73, 0x74, 0x57, 0x65, 0x65, 0x6b, 0x4e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72,
+	0x22, 0xb6, 0x02, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65,
+	0x5f, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x12, 0x0a, 0x04, 0x75,
+	0x75, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x75, 0x69, 0x64, 0x12,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x34, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x20, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x54,
+	0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x77, 0x68, 0x65,
+	0x72, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x77, 0x68, 0x65, 0x72, 0x65, 0x12,
+	0x12, 0x0a, 0x04, 0x77, 0x68, 0x6f, 0x6d, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x77,
+	0x68, 0x6f, 0x6d, 0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d,
+	0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69,
+	0x6d, 0x65, 0x12, 0x19, 0x0a, 0x08, 0x65, 0x6e, 0x64, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x07,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x65, 0x6e, 0x64, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x37, 0x0a,
+	0x07, 0x77, 0x65, 0x65, 0x6b, 0x64, 0x61, 0x79, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1d,
+	0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x57, 0x65, 0x65, 0x6b, 0x64, 0x61, 0x79, 0x52, 0x07, 0x77,
+	0x65, 0x65, 0x6b, 0x64, 0x61, 0x79, 0x12, 0x21, 0x0a, 0x0c, 0x69, 0x73, 0x5f, 0x6e, 0x75, 0x6d,
+	0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x18, 0x09, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x69, 0x73,
+	0x4e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x22, 0x64, 0x0a, 0x12, 0x41, 0x64, 0x64,
+	0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x4e, 0x0a, 0x0c, 0x6c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x6c, 0x69, 0x73, 0x74, 0x18,
+	0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65,
+	0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x41, 0x64, 0x64,
+	0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x49, 0x74,
+	0x65, 0x6d, 0x52, 0x0b, 0x6c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x22,
+	0x65, 0x0a, 0x13, 0x41, 0x64, 0x64, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4e, 0x0a, 0x0c, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74,
+	0x73, 0x5f, 0x6c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x73,
+	0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f,
+	0x61, 0x70, 0x69, 0x2e, 0x41, 0x64, 0x64, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x52,
+	0x65, 0x73, 0x75, 0x6c, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x0b, 0x72, 0x65, 0x73, 0x75, 0x6c,
+	0x74, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x22, 0xc0, 0x02, 0x0a, 0x15, 0x41, 0x64, 0x64, 0x4c, 0x65,
+	0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x49, 0x74, 0x65, 0x6d,
+	0x12, 0x1d, 0x0a, 0x0a, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x5f, 0x75, 0x75, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x55, 0x75, 0x69, 0x64, 0x12,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x34, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x20, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x54,
+	0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x77, 0x68, 0x65,
+	0x72, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x77, 0x68, 0x65, 0x72, 0x65, 0x12,
+	0x12, 0x0a, 0x04, 0x77, 0x68, 0x6f, 0x6d, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x77,
+	0x68, 0x6f, 0x6d, 0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d,
+	0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69,
+	0x6d, 0x65, 0x12, 0x19, 0x0a, 0x08, 0x65, 0x6e, 0x64, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x07,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x65, 0x6e, 0x64, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x37, 0x0a,
+	0x07, 0x77, 0x65, 0x65, 0x6b, 0x64, 0x61, 0x79, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1d,
+	0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x57, 0x65, 0x65, 0x6b, 0x64, 0x61, 0x79, 0x52, 0x07, 0x77,
+	0x65, 0x65, 0x6b, 0x64, 0x61, 0x79, 0x12, 0x21, 0x0a, 0x0c, 0x69, 0x73, 0x5f, 0x6e, 0x75, 0x6d,
+	0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x18, 0x09, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x69, 0x73,
+	0x4e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x22, 0x2f, 0x0a, 0x15, 0x41, 0x64, 0x64,
+	0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x49, 0x74,
+	0x65, 0x6d, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x2a, 0x3b, 0x0a, 0x0a, 0x4c, 0x65,
+	0x73, 0x73, 0x6f, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x4c, 0x45, 0x43, 0x54,
+	0x55, 0x52, 0x45, 0x10, 0x00, 0x12, 0x0b, 0x0a, 0x07, 0x53, 0x45, 0x4d, 0x49, 0x4e, 0x41, 0x52,
+	0x10, 0x01, 0x12, 0x13, 0x0a, 0x0f, 0x4c, 0x41, 0x42, 0x4f, 0x52, 0x41, 0x54, 0x4f, 0x52, 0x59,
+	0x5f, 0x57, 0x4f, 0x52, 0x4b, 0x10, 0x02, 0x2a, 0x65, 0x0a, 0x07, 0x57, 0x65, 0x65, 0x6b, 0x64,
+	0x61, 0x79, 0x12, 0x0a, 0x0a, 0x06, 0x4d, 0x4f, 0x4e, 0x44, 0x41, 0x59, 0x10, 0x00, 0x12, 0x0b,
+	0x0a, 0x07, 0x54, 0x55, 0x45, 0x53, 0x44, 0x41, 0x59, 0x10, 0x01, 0x12, 0x0d, 0x0a, 0x09, 0x57,
+	0x45, 0x44, 0x4e, 0x45, 0x53, 0x44, 0x41, 0x59, 0x10, 0x02, 0x12, 0x0c, 0x0a, 0x08, 0x54, 0x48,
+	0x55, 0x52, 0x53, 0x44, 0x41, 0x59, 0x10, 0x03, 0x12, 0x0a, 0x0a, 0x06, 0x46, 0x52, 0x49, 0x44,
+	0x41, 0x59, 0x10, 0x04, 0x12, 0x0c, 0x0a, 0x08, 0x53, 0x41, 0x54, 0x55, 0x52, 0x44, 0x41, 0x59,
+	0x10, 0x05, 0x12, 0x0a, 0x0a, 0x06, 0x53, 0x55, 0x4e, 0x44, 0x41, 0x59, 0x10, 0x06, 0x32, 0xda,
+	0x01, 0x0a, 0x0f, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x53, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x12, 0x64, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c,
+	0x65, 0x12, 0x29, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x63, 0x68, 0x65,
+	0x64, 0x75, 0x6c, 0x65, 0x5f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x73,
+	0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f,
+	0x61, 0x70, 0x69, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x61, 0x0a, 0x0a, 0x41, 0x64, 0x64, 0x4c,
+	0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x12, 0x28, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c,
+	0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x41, 0x64,
+	0x64, 0x4c, 0x65, 0x73, 0x73, 0x6f, 0x6e, 0x73, 0x5f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x29, 0x2e, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x5f, 0x61, 0x70, 0x69, 0x2e, 0x41, 0x64, 0x64, 0x4c, 0x65, 0x73, 0x73, 0x6f,
+	0x6e, 0x73, 0x5f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x18, 0x5a, 0x16, 0x2e,
+	0x3b, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x5f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
-var file_schedule_service_api_proto_goTypes = []interface{}{}
+var (
+	file_schedule_service_api_proto_rawDescOnce sync.Once
+	file_schedule_service_api_proto_rawDescData = file_schedule_service_api_proto_rawDesc
+)
+
+func file_schedule_service_api_proto_rawDescGZIP() []byte {
+	file_schedule_service_api_proto_rawDescOnce.Do(func() {
+		file_schedule_service_api_proto_rawDescData = protoimpl.X.CompressGZIP(file_schedule_service_api_proto_rawDescData)
+	})
+	return file_schedule_service_api_proto_rawDescData
+}
+
+var file_schedule_service_api_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_schedule_service_api_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_schedule_service_api_proto_goTypes = []interface{}{
+	(LessonType)(0),                // 0: schedule_service_api.LessonType
+	(Weekday)(0),                   // 1: schedule_service_api.Weekday
+	(*GetSchedule_Request)(nil),    // 2: schedule_service_api.GetSchedule_Request
+	(*GetSchedule_Response)(nil),   // 3: schedule_service_api.GetSchedule_Response
+	(*GetSchedule_GroupItem)(nil),  // 4: schedule_service_api.GetSchedule_GroupItem
+	(*GetSchedule_LessonItem)(nil), // 5: schedule_service_api.GetSchedule_LessonItem
+	(*AddLessons_Request)(nil),     // 6: schedule_service_api.AddLessons_Request
+	(*AddLessons_Response)(nil),    // 7: schedule_service_api.AddLessons_Response
+	(*AddLessons_LessonItem)(nil),  // 8: schedule_service_api.AddLessons_LessonItem
+	(*AddLessons_ResultItem)(nil),  // 9: schedule_service_api.AddLessons_ResultItem
+	(*timestamppb.Timestamp)(nil),  // 10: google.protobuf.Timestamp
+}
 var file_schedule_service_api_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	5,  // 0: schedule_service_api.GetSchedule_Response.lessons_list:type_name -> schedule_service_api.GetSchedule_LessonItem
+	4,  // 1: schedule_service_api.GetSchedule_Response.group:type_name -> schedule_service_api.GetSchedule_GroupItem
+	10, // 2: schedule_service_api.GetSchedule_GroupItem.semester_start:type_name -> google.protobuf.Timestamp
+	10, // 3: schedule_service_api.GetSchedule_GroupItem.semester_end:type_name -> google.protobuf.Timestamp
+	0,  // 4: schedule_service_api.GetSchedule_LessonItem.type:type_name -> schedule_service_api.LessonType
+	1,  // 5: schedule_service_api.GetSchedule_LessonItem.weekday:type_name -> schedule_service_api.Weekday
+	8,  // 6: schedule_service_api.AddLessons_Request.lessons_list:type_name -> schedule_service_api.AddLessons_LessonItem
+	9,  // 7: schedule_service_api.AddLessons_Response.results_list:type_name -> schedule_service_api.AddLessons_ResultItem
+	0,  // 8: schedule_service_api.AddLessons_LessonItem.type:type_name -> schedule_service_api.LessonType
+	1,  // 9: schedule_service_api.AddLessons_LessonItem.weekday:type_name -> schedule_service_api.Weekday
+	2,  // 10: schedule_service_api.ScheduleService.GetSchedule:input_type -> schedule_service_api.GetSchedule_Request
+	6,  // 11: schedule_service_api.ScheduleService.AddLessons:input_type -> schedule_service_api.AddLessons_Request
+	3,  // 12: schedule_service_api.ScheduleService.GetSchedule:output_type -> schedule_service_api.GetSchedule_Response
+	7,  // 13: schedule_service_api.ScheduleService.AddLessons:output_type -> schedule_service_api.AddLessons_Response
+	12, // [12:14] is the sub-list for method output_type
+	10, // [10:12] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_schedule_service_api_proto_init() }
@@ -44,21 +865,241 @@ func file_schedule_service_api_proto_init() {
 	if File_schedule_service_api_proto != nil {
 		return
 	}
+	if !protoimpl.UnsafeEnabled {
+		file_schedule_service_api_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetSchedule_Request); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_schedule_service_api_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetSchedule_Response); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_schedule_service_api_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetSchedule_GroupItem); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_schedule_service_api_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetSchedule_LessonItem); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_schedule_service_api_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddLessons_Request); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_schedule_service_api_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddLessons_Response); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_schedule_service_api_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddLessons_LessonItem); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_schedule_service_api_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddLessons_ResultItem); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_schedule_service_api_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   0,
+			NumEnums:      2,
+			NumMessages:   8,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_schedule_service_api_proto_goTypes,
 		DependencyIndexes: file_schedule_service_api_proto_depIdxs,
+		EnumInfos:         file_schedule_service_api_proto_enumTypes,
+		MessageInfos:      file_schedule_service_api_proto_msgTypes,
 	}.Build()
 	File_schedule_service_api_proto = out.File
 	file_schedule_service_api_proto_rawDesc = nil
 	file_schedule_service_api_proto_goTypes = nil
 	file_schedule_service_api_proto_depIdxs = nil
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConnInterface
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion6
+
+// ScheduleServiceClient is the client API for ScheduleService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type ScheduleServiceClient interface {
+	// возвращает расписание указанной группы
+	GetSchedule(ctx context.Context, in *GetSchedule_Request, opts ...grpc.CallOption) (*GetSchedule_Response, error)
+	// добавляет указанные занятия в систему
+	AddLessons(ctx context.Context, in *AddLessons_Request, opts ...grpc.CallOption) (*AddLessons_Response, error)
+}
+
+type scheduleServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewScheduleServiceClient(cc grpc.ClientConnInterface) ScheduleServiceClient {
+	return &scheduleServiceClient{cc}
+}
+
+func (c *scheduleServiceClient) GetSchedule(ctx context.Context, in *GetSchedule_Request, opts ...grpc.CallOption) (*GetSchedule_Response, error) {
+	out := new(GetSchedule_Response)
+	err := c.cc.Invoke(ctx, "/schedule_service_api.ScheduleService/GetSchedule", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) AddLessons(ctx context.Context, in *AddLessons_Request, opts ...grpc.CallOption) (*AddLessons_Response, error) {
+	out := new(AddLessons_Response)
+	err := c.cc.Invoke(ctx, "/schedule_service_api.ScheduleService/AddLessons", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ScheduleServiceServer is the server API for ScheduleService service.
+type ScheduleServiceServer interface {
+	// возвращает расписание указанной группы
+	GetSchedule(context.Context, *GetSchedule_Request) (*GetSchedule_Response, error)
+	// добавляет указанные занятия в систему
+	AddLessons(context.Context, *AddLessons_Request) (*AddLessons_Response, error)
+}
+
+// UnimplementedScheduleServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedScheduleServiceServer struct {
+}
+
+func (*UnimplementedScheduleServiceServer) GetSchedule(context.Context, *GetSchedule_Request) (*GetSchedule_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSchedule not implemented")
+}
+func (*UnimplementedScheduleServiceServer) AddLessons(context.Context, *AddLessons_Request) (*AddLessons_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddLessons not implemented")
+}
+
+func RegisterScheduleServiceServer(s *grpc.Server, srv ScheduleServiceServer) {
+	s.RegisterService(&_ScheduleService_serviceDesc, srv)
+}
+
+func _ScheduleService_GetSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSchedule_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).GetSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/schedule_service_api.ScheduleService/GetSchedule",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).GetSchedule(ctx, req.(*GetSchedule_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_AddLessons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddLessons_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).AddLessons(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/schedule_service_api.ScheduleService/AddLessons",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).AddLessons(ctx, req.(*AddLessons_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _ScheduleService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "schedule_service_api.ScheduleService",
+	HandlerType: (*ScheduleServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetSchedule",
+			Handler:    _ScheduleService_GetSchedule_Handler,
+		},
+		{
+			MethodName: "AddLessons",
+			Handler:    _ScheduleService_AddLessons_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "schedule-service-api.proto",
 }
