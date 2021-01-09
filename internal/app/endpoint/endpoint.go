@@ -2,15 +2,16 @@ package endpoint
 
 import (
 	"context"
+	customErrors "github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/custom-errors"
 	api "github.com/Bernigend/mb-cw3-phll-schedule-service/pkg/schedule-service-api"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	uuid "github.com/satori/go.uuid"
 )
 
+// Необходимые для работы API методы сервиса
 type IService interface {
 	// получение расписания группы
 	GetScheduleByGroupName(ctx context.Context, groupName string) (*api.GetSchedule_Response, error)
-	GetScheduleByGroupUuid(ctx context.Context, groupUuid string) (*api.GetSchedule_Response, error)
+	GetScheduleByGroupUuid(ctx context.Context, groupUuid uuid.UUID) (*api.GetSchedule_Response, error)
 
 	// добавление занятий
 	AddLessons(ctx context.Context, lessonsList []*api.AddLessons_LessonItem) (*api.AddLessons_Response, error)
@@ -24,25 +25,32 @@ func NewEndpoint(service IService) *Endpoint {
 	return &Endpoint{service: service}
 }
 
+// [Метод API] Возвращает расписание группы
 func (e Endpoint) GetSchedule(ctx context.Context, request *api.GetSchedule_Request) (*api.GetSchedule_Response, error) {
-	groupUuid := request.GetGroupUuid()
-	if len(groupUuid) > 0 {
-		return e.service.GetScheduleByGroupUuid(ctx, groupUuid)
+	if groupUuid := request.GetGroupUuid(); len(groupUuid) > 0 {
+		parsedGroupUuid, err := uuid.FromString(groupUuid)
+		if err != nil {
+			return nil, customErrors.InvalidArgument.New(ctx, "invalid group UUID")
+		}
+
+		result, err := e.service.GetScheduleByGroupUuid(ctx, parsedGroupUuid)
+		return result, customErrors.ToGRPC(err)
 	}
 
-	groupName := request.GetGroupName()
-	if len(groupName) > 0 {
-		return e.service.GetScheduleByGroupName(ctx, groupName)
+	if groupName := request.GetGroupName(); len(groupName) > 0 {
+		result, err := e.service.GetScheduleByGroupName(ctx, groupName)
+		return result, customErrors.ToGRPC(err)
 	}
 
-	return nil, status.Error(codes.InvalidArgument, "expected group name or group uuid")
+	return nil, customErrors.InvalidArgument.New(ctx, "expected group name or group uuid")
 }
 
+// [Метод API] Добавляет занятия в систему
 func (e Endpoint) AddLessons(ctx context.Context, request *api.AddLessons_Request) (*api.AddLessons_Response, error) {
-	lessonsList := request.GetLessonsList()
-	if lessonsList != nil {
-		return e.service.AddLessons(ctx, lessonsList)
+	if lessonsList := request.GetLessonsList(); lessonsList != nil {
+		result, err := e.service.AddLessons(ctx, lessonsList)
+		return result, customErrors.ToGRPC(err)
 	}
 
-	return nil, status.Error(codes.InvalidArgument, "expected lessons list")
+	return nil, customErrors.InvalidArgument.New(ctx, "expected lessons list")
 }

@@ -81,6 +81,7 @@ message AddLessons_LessonItem
 message AddLessons_ResultItem
 {
   bool result = 1;
+  string error = 2;
 }
 
 /******************************************
