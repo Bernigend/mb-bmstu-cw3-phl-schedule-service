@@ -1,1 +1,1 @@
-# mb-bmstu-cw3-phl-schedule-service
+# mb-cw3-phll-schedule-service
