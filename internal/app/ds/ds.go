@@ -6,12 +6,6 @@ import (
 	"time"
 )
 
-const (
-	LessonTypeLecture        = 0
-	LessonTypeSeminar        = 1
-	LessonTypeLaboratoryWork = 2
-)
-
 // Базовая модель включает в себя общие столбцы всех таблиц
 type BaseModel struct {
 	UUID      uuid.UUID `gorm:"type:uuid;primary_key;"`
@@ -20,13 +14,22 @@ type BaseModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func (b *BaseModel) BeforeCreate(tx *gorm.DB) error {
+func (b *BaseModel) BeforeCreate(_ *gorm.DB) error {
 	b.UUID = uuid.NewV4()
 	return nil
 }
 
 // Список занятий
 type LessonsList []*Lesson
+
+const (
+	LessonNameMaxLength  = 128
+	LessonWhomMaxLength  = 250
+	LessonWhereMaxLength = 32
+
+	LessonStartTimeFormat = "15:04"
+	LessonEndTimeFormat   = "15:04"
+)
 
 // Модель занятия
 type Lesson struct {
