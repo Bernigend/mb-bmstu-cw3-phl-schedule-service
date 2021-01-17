@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
-
 package schedule_service_api;
 option go_package = ".;schedule_service_api";
 
@@ -33,8 +31,8 @@ message GetSchedule_GroupItem
 {
   string uuid = 1;
   string name = 2;
-  google.protobuf.Timestamp semester_start = 3;
-  google.protobuf.Timestamp semester_end = 4;
+  string semester_start = 3;
+  string semester_end = 4;
   bool is_first_week_numerator = 5;
 }
 

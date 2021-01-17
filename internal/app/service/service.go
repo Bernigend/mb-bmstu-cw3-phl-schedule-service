@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	group_service_api "github.com/Bernigend/mb-cw3-phll-group-service/pkg/group-service-api"
 	customErrors "github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/custom-errors"
 	"github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/ds"
 	api "github.com/Bernigend/mb-cw3-phll-schedule-service/pkg/schedule-service-api"
@@ -17,39 +18,47 @@ type IRepository interface {
 
 type Service struct {
 	repository      IRepository
-	groupServiceApi interface{} // TODO: подключение group service API
+	groupServiceApi group_service_api.GroupServiceClient
 }
 
-func NewService(repository IRepository, groupServiceApi interface{}) (*Service, error) {
-	return &Service{repository: repository, groupServiceApi: groupServiceApi}, nil
+func NewService(repository IRepository, groupServiceApi group_service_api.GroupServiceClient) *Service {
+	return &Service{repository: repository, groupServiceApi: groupServiceApi}
 }
 
 // Получение расписания по имени группы
 func (s Service) GetScheduleByGroupName(ctx context.Context, groupName string) (*api.GetSchedule_Response, error) {
-	// TODO: получение данных группы из group service
-	group := &api.GetSchedule_GroupItem{
-		Uuid:                 uuid.NewV4().String(),
-		Name:                 groupName,
-		SemesterStart:        nil,
-		SemesterEnd:          nil,
-		IsFirstWeekNumerator: false,
+	group, err := s.groupServiceApi.GetGroup(ctx, &group_service_api.GetGroup_Request{
+		GroupName: groupName,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return s.GetScheduleByGroup(ctx, group)
+	return s.GetScheduleByGroup(ctx, &api.GetSchedule_GroupItem{
+		Uuid:                 group.GetGroupUuid(),
+		Name:                 group.GetGroupName(),
+		SemesterStart:        group.GetSemesterStartAt(),
+		SemesterEnd:          group.GetSemesterEndAt(),
+		IsFirstWeekNumerator: group.GetIsFirstWeekNumerator(),
+	})
 }
 
 // Получение расписания по UUID группы
 func (s Service) GetScheduleByGroupUuid(ctx context.Context, groupUuid uuid.UUID) (*api.GetSchedule_Response, error) {
-	// TODO: получение данных группы из group service
-	group := &api.GetSchedule_GroupItem{
-		Uuid:                 groupUuid.String(),
-		Name:                 "",
-		SemesterStart:        nil,
-		SemesterEnd:          nil,
-		IsFirstWeekNumerator: false,
+	group, err := s.groupServiceApi.GetGroup(ctx, &group_service_api.GetGroup_Request{
+		GroupUuid: groupUuid.String(),
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return s.GetScheduleByGroup(ctx, group)
+	return s.GetScheduleByGroup(ctx, &api.GetSchedule_GroupItem{
+		Uuid:                 group.GetGroupUuid(),
+		Name:                 group.GetGroupName(),
+		SemesterStart:        group.GetSemesterStartAt(),
+		SemesterEnd:          group.GetSemesterEndAt(),
+		IsFirstWeekNumerator: group.GetIsFirstWeekNumerator(),
+	})
 }
 
 // Добавляет занятия в сервис

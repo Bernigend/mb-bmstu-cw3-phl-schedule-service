@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	group_service_api "github.com/Bernigend/mb-cw3-phll-group-service/pkg/group-service-api"
 	"github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/endpoint"
 	"github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/repository"
 	"github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/service"
@@ -12,15 +13,19 @@ import (
 )
 
 const (
-	grpcServerPort = 8990
+	grpcServerPort = 8992
 )
 
 const (
 	dbHost = "localhost"
-	dbPort = "5432"
+	dbPort = "5433"
 	dbUser = "user"
 	dbPass = "password"
 	dbName = "db"
+)
+
+const (
+	GroupServiceAddr = ""
 )
 
 func main() {
@@ -41,10 +46,14 @@ func main() {
 	}
 	log.Println("migrations ok")
 
-	srv, err := service.NewService(db, "")
+	grpcClientConfig, err := grpc.Dial(GroupServiceAddr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
+	groupServiceClient := group_service_api.NewGroupServiceClient(grpcClientConfig)
+	log.Println("group service ok")
+
+	srv := service.NewService(db, groupServiceClient)
 	log.Println("service ok")
 
 	endpoints := endpoint.NewEndpoint(srv)
