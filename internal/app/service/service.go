@@ -82,14 +82,6 @@ func (s Service) AddLessons(ctx context.Context, lessonsList []*api.AddLessons_L
 			continue
 		}
 
-		if _, ok := api.LessonType_name[int32(lesson.GetType())]; ok != true {
-			results = append(results, &api.AddLessons_ResultItem{
-				Result: false,
-				Error:  "неверный тип занятия",
-			})
-			continue
-		}
-
 		if len(lesson.GetWhere()) > ds.LessonWhereMaxLength {
 			results = append(results, &api.AddLessons_ResultItem{
 				Result: false,
@@ -125,14 +117,6 @@ func (s Service) AddLessons(ctx context.Context, lessonsList []*api.AddLessons_L
 			continue
 		}
 		endTime = endTime.UTC()
-
-		if _, ok := api.Weekday_name[int32(lesson.GetWeekday())]; ok != true {
-			results = append(results, &api.AddLessons_ResultItem{
-				Result: false,
-				Error:  "неверный день недели",
-			})
-			continue
-		}
 
 		err = s.repository.AddLesson(ctx, &ds.Lesson{
 			GroupUUID:   groupUUID,

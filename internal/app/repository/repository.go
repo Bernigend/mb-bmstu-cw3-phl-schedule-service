@@ -67,6 +67,6 @@ func (r Repository) GetLessonsByGroupUuid(ctx context.Context, groupUuid uuid.UU
 	return lessons, nil
 }
 
-func (r Repository) AddLesson(ctx context.Context, lesson *ds.Lesson) error {
+func (r Repository) AddLesson(_ context.Context, lesson *ds.Lesson) error {
 	return r.db.Create(lesson).Error
 }
