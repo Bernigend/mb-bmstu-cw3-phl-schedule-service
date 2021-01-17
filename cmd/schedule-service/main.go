@@ -25,7 +25,7 @@ const (
 )
 
 const (
-	GroupServiceAddr = ""
+	GroupServiceAddr = "localhost:8990"
 )
 
 func main() {

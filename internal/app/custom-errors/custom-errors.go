@@ -160,3 +160,8 @@ func ToGRPC(err error) error {
 
 	return gRPCerr.toGRPC()
 }
+
+func FromGRPC(err error) error {
+	errStatus, _ := status.FromError(err)
+	return newServiceError(errStatus.Code(), false, errStatus.Message())
+}

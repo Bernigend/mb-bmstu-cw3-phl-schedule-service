@@ -3,12 +3,15 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
+
 	group_service_api "github.com/Bernigend/mb-cw3-phll-group-service/pkg/group-service-api"
+	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/status"
+
 	customErrors "github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/custom-errors"
 	"github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/ds"
 	api "github.com/Bernigend/mb-cw3-phll-schedule-service/pkg/schedule-service-api"
-	uuid "github.com/satori/go.uuid"
-	"time"
 )
 
 type IRepository interface {
@@ -31,7 +34,7 @@ func (s Service) GetScheduleByGroupName(ctx context.Context, groupName string) (
 		GroupName: groupName,
 	})
 	if err != nil {
-		return nil, err
+		return nil, customErrors.FromGRPC(err)
 	}
 
 	return s.GetScheduleByGroup(ctx, &api.GetSchedule_GroupItem{
@@ -49,7 +52,7 @@ func (s Service) GetScheduleByGroupUuid(ctx context.Context, groupUuid uuid.UUID
 		GroupUuid: groupUuid.String(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, customErrors.FromGRPC(err)
 	}
 
 	return s.GetScheduleByGroup(ctx, &api.GetSchedule_GroupItem{
@@ -79,6 +82,15 @@ func (s Service) AddLessons(ctx context.Context, lessonsList []*api.AddLessons_L
 			results = append(results, &api.AddLessons_ResultItem{
 				Result: false,
 				Error:  "неверный UUID группы",
+			})
+			continue
+		}
+
+		if _, err := s.groupServiceApi.GetGroup(ctx, &group_service_api.GetGroup_Request{GroupUuid: lesson.GroupUuid}); err != nil {
+			errStatus, _ := status.FromError(err)
+			results = append(results, &api.AddLessons_ResultItem{
+				Result: false,
+				Error:  errStatus.Message(),
 			})
 			continue
 		}
