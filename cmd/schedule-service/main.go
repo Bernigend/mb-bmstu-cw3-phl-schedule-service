@@ -68,7 +68,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	api.RegisterScheduleServiceServer(grpcServer, endpoints)
 
-	log.Println("starting grpc server...")
+	log.Printf("starting grpc server at 0.0.0.0:%v...\n", grpcServerPort)
 	err = grpcServer.Serve(listenPort)
 	if err != nil {
 		log.Fatal(err)
