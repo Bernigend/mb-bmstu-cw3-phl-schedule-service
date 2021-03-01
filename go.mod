@@ -10,3 +10,7 @@ require (
 	gorm.io/driver/postgres v1.0.6
 	gorm.io/gorm v1.20.10
 )
+
+replace (
+	github.com/Bernigend/mb-cw3-phll-schedule-service/pkg/schedule-service-api => ./pkg/schedule-service-api
+)

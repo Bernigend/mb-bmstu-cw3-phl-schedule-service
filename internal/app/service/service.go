@@ -7,6 +7,7 @@ import (
 
 	group_service_api "github.com/Bernigend/mb-cw3-phll-group-service/pkg/group-service-api"
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	customErrors "github.com/Bernigend/mb-cw3-phll-schedule-service/internal/app/custom-errors"
@@ -88,6 +89,14 @@ func (s Service) AddLessons(ctx context.Context, lessonsList []*api.AddLessons_L
 
 		if _, err := s.groupServiceApi.GetGroup(ctx, &group_service_api.GetGroup_Request{GroupUuid: lesson.GroupUuid}); err != nil {
 			errStatus, _ := status.FromError(err)
+			if errStatus.Code() == codes.Unavailable {
+				results = append(results, &api.AddLessons_ResultItem{
+					Result: false,
+					Error:  customErrors.Internal.NewWrap(ctx, "sorry, service unavailable", err).Error(),
+				})
+				continue
+			}
+
 			results = append(results, &api.AddLessons_ResultItem{
 				Result: false,
 				Error:  errStatus.Message(),
